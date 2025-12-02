@@ -35,29 +35,29 @@ const Dial = struct {
             .times = 0,
         };
     }
-    
-    fn rotateRight(self: *Dial, amount: i32) *Dial {
-        if (amount == 0) return self;
+
+    fn rotateRight(self: *Dial, amount: i32) void {
+        if (amount == 0) return;
         self.position += 1;
-        if (self.position == 0) {
-            self.times += 1;
-        } 
         if (self.position == 100) {
             self.position = 0;
         }
-        return self.rotateRight(amount+1);
-    }
-
-    fn rotateLeft(self: *Dial, amount: i32) *Dial {
-        if (amount == 0) return self;
-        self.position -= 1;
         if (self.position == 0) {
             self.times += 1;
-        } 
+        }
+        self.rotateRight(amount - 1);
+    }
+
+    fn rotateLeft(self: *Dial, amount: i32) void {
+        if (amount == 0) return;
+        self.position -= 1;
         if (self.position == -1) {
             self.position = 99;
         }
-        return self.rotateLeft(amount-1);
+        if (self.position == 0) {
+            self.times += 1;
+        }
+        self.rotateLeft(amount - 1);
     }
 };
 
@@ -69,7 +69,7 @@ test "over rotate right" {
 }
 
 test "over rotate left" {
-    const dial = Dial.new();
+    var dial = Dial.new();
     dial.rotateLeft(220);
     try std.testing.expectEqual(30, dial.position);
     try std.testing.expectEqual(2, dial.times);
