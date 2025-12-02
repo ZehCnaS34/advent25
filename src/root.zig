@@ -1,6 +1,8 @@
 const std = @import("std");
+const mem = std.mem;
 const parseInt = std.fmt.parseInt;
 const print = std.debug.print;
+const bufPrint = std.fmt.bufPrint;
 const splitScalar = std.mem.splitScalar;
 
 pub const Day1 = struct {
@@ -98,10 +100,64 @@ pub const Day1 = struct {
 
 pub const Day2 = struct {
     const input = @embedFile("day-2.txt");
+
+    const Range = struct {
+        start: usize,
+        end: usize,
+        
+        fn parse(line: []const u8) !Range {
+            var lit = splitScalar(u8, std.mem.trim(u8, line, "\n"), '-');
+
+            const start = try parseInt(usize, lit.next().?, 10);
+            const end = try parseInt(usize, lit.next().?, 10);
+
+            return .{
+                .start = start,
+                .end = end,
+            };
+        }
+
+        fn isInvalid(id: []u8) !usize {
+            var len: usize = 1;
+            var view: ?[]const u8 = undefined;
+            for (0..id.len) |offset| {
+                view = id[offset..offset+len];
+                
+                var i: usize = offset+len;
+                var flag: bool = false;
+                while (i < id.len) : (i += len) {
+                    if (!mem.eql(u8, view, id[i..i+len])) {
+                        len += 1;
+                        flag = true;
+                        break;
+                    }
+                }
+                if (flag) continue;
+
+                return 1;
+            }
+        }
+    };
+
     pub fn part1() !void {
         var it = splitScalar(u8, input, ',');
+        var ans: usize = 0;
+
         while (it.next()) |line| {
-            print("{s}\n", .{line});
+            if (line.len == 0) break;
+
+           const range = try Range.parse(line);
+
+            var buffer: [128]u8 = undefined;
+
+            for (range.start..range.end) |i| {
+                const result = try bufPrint(&buffer, "{}", .{i});
+                ans += try Range.isInvalid(result);
+            }
         }
+
+        print("Day2 Part1: {d}\n", .{ans});
     }
+    
 };
+
