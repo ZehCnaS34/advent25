@@ -4,6 +4,7 @@ const parseInt = std.fmt.parseInt;
 const print = std.debug.print;
 const bufPrint = std.fmt.bufPrint;
 const splitScalar = std.mem.splitScalar;
+const allocator = std.heap.page_allocator;
 
 pub const Day1 = struct {
     const input = @embedFile("day-1.txt");
@@ -176,6 +177,84 @@ pub const Day2 = struct {
     }
 };
 
+pub const Day3 = struct {
+    const input = @embedFile("day-3.txt");
+
+    pub fn part1() !void {
+        var buffer: [1000]u8 = undefined;
+        var fba = std.heap.FixedBufferAllocator.init(&buffer);
+        const allo = fba.allocator();
+        var it = splitScalar(u8, input, '\n');
+        var ans: i32 = 0;
+
+        while (it.next()) |line| {
+            var digits = try allo.alloc(u8, line.len);
+            var rtl = try allo.alloc(u8, line.len);
+            var ltr = try allo.alloc(u8, line.len);
+            defer allo.free(digits);
+            defer allo.free(rtl);
+            defer allo.free(ltr);
+
+            for (line, 0..) |c, i| {
+                digits[i] = c - '0';
+            }
+
+            for (0..digits.len) |i| {
+                if (i != 0) {
+                    ltr[i] = @max(digits[i], ltr[i - 1]);
+                    rtl[line.len - i - 1] = @max(digits[line.len - i - 1], rtl[line.len - i]);
+                } else {
+                    ltr[i] = digits[i];
+                    rtl[line.len - 1] = digits[line.len - 1];
+                }
+            }
+
+            var max_int: ?u8 = null;
+
+            for (0..digits.len - 1) |i| {
+                const string = [2]u8{ ltr[i] + '0', rtl[i + 1] + '0' };
+                const value = try parseInt(u8, &string, 10);
+                if (max_int == null or value > max_int.?) {
+                    max_int = value;
+                }
+            }
+
+            ans += @as(i32, max_int.?);
+        }
+
+        print("Day3 Part1: {d}\n", .{ans});
+    }
+
+    pub fn part2() !void {
+        var it = splitScalar(u8, input, '\n');
+        const ans: i32 = 0;
+
+        while (it.next()) |line| {
+            var digits = try allocator.alloc(u8, line.len);
+            for (line, 0..) |c, i| {
+                digits[i] = c - '0';
+            }
+        }
+
+        print("Day3 Part1: {d}\n", .{ans});
+    }
+};
+
 test "example problem" {
-    // scratch
+    const input =
+        \\987654321111111
+        \\811111111111119
+        \\234234234234278
+        \\818181911112111
+    ;
+
+    var it = splitScalar(u8, input, '\n');
+
+    while (it.next()) |line| {
+        var digits = try allocator.alloc(u8, line.len);
+
+        for (line, 0..) |c, i| {
+            digits[i] = c - '0';
+        }
+    }
 }
