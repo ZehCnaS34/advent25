@@ -4,7 +4,6 @@ const parseInt = std.fmt.parseInt;
 const print = std.debug.print;
 const bufPrint = std.fmt.bufPrint;
 const splitScalar = std.mem.splitScalar;
-const allocator = std.heap.page_allocator;
 
 pub const Day1 = struct {
     const input = @embedFile("day-1.txt");
@@ -181,19 +180,17 @@ pub const Day3 = struct {
     const input = @embedFile("day-3.txt");
 
     pub fn part1() !void {
-        var buffer: [1000]u8 = undefined;
-        var fba = std.heap.FixedBufferAllocator.init(&buffer);
-        const allo = fba.allocator();
+        var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+        defer arena.deinit();
+        const allocator = arena.allocator();
+
         var it = splitScalar(u8, input, '\n');
         var ans: i32 = 0;
 
         while (it.next()) |line| {
-            var digits = try allo.alloc(u8, line.len);
-            var rtl = try allo.alloc(u8, line.len);
-            var ltr = try allo.alloc(u8, line.len);
-            defer allo.free(digits);
-            defer allo.free(rtl);
-            defer allo.free(ltr);
+            var digits = try allocator.alloc(u8, line.len);
+            var rtl = try allocator.alloc(u8, line.len);
+            var ltr = try allocator.alloc(u8, line.len);
 
             for (line, 0..) |c, i| {
                 digits[i] = c - '0';
@@ -226,6 +223,10 @@ pub const Day3 = struct {
     }
 
     pub fn part2() !void {
+        var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+        defer arena.deinit();
+        const allocator = arena.allocator();
+
         var it = splitScalar(u8, input, '\n');
         const ans: i32 = 0;
 
@@ -241,6 +242,8 @@ pub const Day3 = struct {
 };
 
 test "example problem" {
+    const allocator = std.heap.page_allocator;
+
     const input =
         \\987654321111111
         \\811111111111119
@@ -252,6 +255,7 @@ test "example problem" {
 
     while (it.next()) |line| {
         var digits = try allocator.alloc(u8, line.len);
+        defer allocator.free(digits);
 
         for (line, 0..) |c, i| {
             digits[i] = c - '0';
