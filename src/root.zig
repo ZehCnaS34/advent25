@@ -188,33 +188,39 @@ pub const Day3 = struct {
         var ans: i32 = 0;
 
         while (it.next()) |line| {
-            var digits = try allocator.alloc(u8, line.len);
             var rtl = try allocator.alloc(u8, line.len);
             var ltr = try allocator.alloc(u8, line.len);
 
-            for (line, 0..) |c, i| {
-                digits[i] = c - '0';
-            }
-
-            for (0..digits.len) |i| {
+            for (0..line.len) |i| {
                 if (i != 0) {
-                    ltr[i] = @max(digits[i], ltr[i - 1]);
-                    rtl[line.len - i - 1] = @max(digits[line.len - i - 1], rtl[line.len - i]);
+                    ltr[i] = @max(line[i], ltr[i - 1]);
+                    rtl[line.len - i - 1] = @max(line[line.len - i - 1], rtl[line.len - i]);
                 } else {
-                    ltr[i] = digits[i];
-                    rtl[line.len - 1] = digits[line.len - 1];
+                    ltr[i] = line[i];
+                    rtl[line.len - 1] = line[line.len - 1];
                 }
             }
 
             var max_int: ?u8 = null;
 
-            for (0..digits.len - 1) |i| {
-                const string = [2]u8{ ltr[i] + '0', rtl[i + 1] + '0' };
+            for (0..line.len - 1) |i| {
+                const string = [2]u8{ ltr[i], rtl[i + 1] };
                 const value = try parseInt(u8, &string, 10);
                 if (max_int == null or value > max_int.?) {
                     max_int = value;
                 }
             }
+
+            // print(
+            //     \\line = {s}
+            //     \\  -> = {s}
+            //     \\  <- = {s}
+            //     \\ max = {d}
+            //     \\
+            //     \\
+            //     ,
+            //     .{line, ltr, rtl, max_int.?}
+            // );
 
             ans += @as(i32, max_int.?);
         }
@@ -228,12 +234,20 @@ pub const Day3 = struct {
         const allocator = arena.allocator();
 
         var it = splitScalar(u8, input, '\n');
-        const ans: i32 = 0;
+        var ans: i64 = 0;
 
         while (it.next()) |line| {
-            var digits = try allocator.alloc(u8, line.len);
-            for (line, 0..) |c, i| {
-                digits[i] = c - '0';
+            var digits = try allocator.alloc(u8, 12);
+            @memcpy(digits, line[line.len - 12 .. line.len]);
+
+            var index = line.len - 1 - 12 - 1;
+            var focus = line[index];
+            while (0 <= index) : (index -= 1) {
+                for (digits, 0..) |d, i| {
+                    if (d > focus) {
+                        break;
+                    }
+                }
             }
         }
 
@@ -241,8 +255,11 @@ pub const Day3 = struct {
     }
 };
 
-test "example problem" {
+test "playground" {
+    const expect = std.testing.expect;
     const allocator = std.heap.page_allocator;
+
+    _ = "818181911112111";
 
     const input =
         \\987654321111111
@@ -261,4 +278,6 @@ test "example problem" {
             digits[i] = c - '0';
         }
     }
+
+    try expect(true);
 }
