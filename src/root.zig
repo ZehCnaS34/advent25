@@ -211,17 +211,6 @@ pub const Day3 = struct {
                 }
             }
 
-            // print(
-            //     \\line = {s}
-            //     \\  -> = {s}
-            //     \\  <- = {s}
-            //     \\ max = {d}
-            //     \\
-            //     \\
-            //     ,
-            //     .{line, ltr, rtl, max_int.?}
-            // );
-
             ans += @as(i32, max_int.?);
         }
 
@@ -229,55 +218,40 @@ pub const Day3 = struct {
     }
 
     pub fn part2() !void {
-        var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-        defer arena.deinit();
-        const allocator = arena.allocator();
-
         var it = splitScalar(u8, input, '\n');
         var ans: i64 = 0;
 
         while (it.next()) |line| {
-            var digits = try allocator.alloc(u8, 12);
-            @memcpy(digits, line[line.len - 12 .. line.len]);
+            var digit_indices = [_]usize{0} ** 12;
+            for (line.len - 12..line.len, 0..) |li, di| {
+                digit_indices[di] = li;
+            }
 
-            var index = line.len - 1 - 12 - 1;
-            var focus = line[index];
-            while (0 <= index) : (index -= 1) {
-                for (digits, 0..) |d, i| {
-                    if (d > focus) {
-                        break;
-                    }
+            var start: usize = digit_indices[0] - 1;
+            while (0 <= start) : (start -= 1) {
+                var focus = start;
+
+                for (0..12) |di| {
+                    if (line[digit_indices[di]] > line[focus]) break;
+
+                    const tmp = digit_indices[di];
+                    digit_indices[di] = focus;
+                    focus = tmp;
+                }
+
+                if (start == 0) {
+                    break;
                 }
             }
+
+            var digits = [_]u8{0} ** 12;
+            for (digit_indices, 0..) |di, do| {
+                digits[do] = line[di];
+            }
+
+            ans += try parseInt(i64, &digits, 10);
         }
 
-        print("Day3 Part1: {d}\n", .{ans});
+        print("Day3 Part2: {d}\n", .{ans});
     }
 };
-
-test "playground" {
-    const expect = std.testing.expect;
-    const allocator = std.heap.page_allocator;
-
-    _ = "818181911112111";
-
-    const input =
-        \\987654321111111
-        \\811111111111119
-        \\234234234234278
-        \\818181911112111
-    ;
-
-    var it = splitScalar(u8, input, '\n');
-
-    while (it.next()) |line| {
-        var digits = try allocator.alloc(u8, line.len);
-        defer allocator.free(digits);
-
-        for (line, 0..) |c, i| {
-            digits[i] = c - '0';
-        }
-    }
-
-    try expect(true);
-}
