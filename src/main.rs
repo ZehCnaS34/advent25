@@ -4,6 +4,7 @@ mod common;
 mod day4;
 mod day5;
 mod day6;
+mod day7;
 
 #[derive(Parser)]
 struct Root {
@@ -16,6 +17,7 @@ enum Command {
     Day4,
     Day5,
     Day6,
+    Day7,
 }
 
 fn main() {
@@ -24,6 +26,7 @@ fn main() {
             Command::Day4 => day4::run(),
             Command::Day5 => day5::run(),
             Command::Day6 => day6::run(),
+            Command::Day7 => day7::run(),
         },
     }
 }

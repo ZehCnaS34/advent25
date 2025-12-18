@@ -20,6 +20,7 @@ pub mod matrix {
         }
     }
 
+    #[derive(Debug)]
     pub struct Matrix<T> {
         data: Vec<Vec<T>>,
     }
@@ -45,6 +46,10 @@ pub mod matrix {
 
         pub fn column(&self, col: usize) -> Vec<&T> {
             self.data.iter().map(|row| &row[col]).collect()
+        }
+
+        pub fn row(&self, row: usize) -> Vec<&T> {
+            self.data[row].iter().collect()
         }
 
         pub fn neighbors(&self, Location(row, col): &Location) -> Vec<Location> {
