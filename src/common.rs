@@ -43,6 +43,10 @@ pub mod matrix {
             }
         }
 
+        pub fn column(&self, col: usize) -> Vec<&T> {
+            self.data.iter().map(|row| &row[col]).collect()
+        }
+
         pub fn neighbors(&self, Location(row, col): &Location) -> Vec<Location> {
             let (row, col) = (*row as isize, *col as isize);
             let mut neighbors = Vec::new();
