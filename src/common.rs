@@ -109,3 +109,41 @@ pub mod matrix {
         }
     }
 }
+
+pub mod graph {
+    struct Node<'a, T> {
+        graph: &'a AdjacencyMatrix<'a, T>,
+        coord: (usize, usize),
+    }
+
+    pub trait Distance {
+        fn distance(&self, other: &Self) -> f64;
+    }
+
+    pub struct AdjacencyMatrix<'a, T> {
+        nodes: &'a [T],
+        data: Vec<Vec<f64>>,
+    }
+
+    impl<'a, T> From<&'a [T]> for AdjacencyMatrix<'a, T>
+    where
+        T: Distance,
+    {
+        fn from(nodes: &'a [T]) -> Self {
+            let mut data = vec![vec![0.0; nodes.len()]; nodes.len()];
+
+            for i in 0..nodes.len() - 1 {
+                for j in (i + 1)..nodes.len() {
+                    let distance = nodes[i].distance(&nodes[j]);
+                    data[i][j] = distance;
+                    data[j][i] = distance;
+                }
+            }
+
+            AdjacencyMatrix {
+                nodes: &nodes,
+                data,
+            }
+        }
+    }
+}
